@@ -306,7 +306,7 @@ export function AboutDrawer() {
               href="https://github.com/worthbeer/pr-review-ops-dashboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-xs text-accent hover:underline leading-relaxed"
+              className="block font-mono text-xs text-accent hover:underline leading-relaxed"
             >
               github.com/worthbeer/pr-review-ops-dashboard ↗
             </a>
