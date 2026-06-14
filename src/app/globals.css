@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Default theme (Void) ──────────────────────────────────────────────── */
+:root {
+  --color-base:         #0A0C10;
+  --color-panel:        #13171F;
+  --color-panel-border: #1E2430;
+  --color-panel-hover:  #171C26;
+  --color-accent:       #00D4FF;
+  --color-accent-dim:   #00D4FF1A;
+  --color-accent-glow:  #00D4FF33;
+  --color-warning:      #F5A623;
+  --color-warning-dim:  #F5A6231A;
+  --color-success:      #22C55E;
+  --color-success-dim:  #22C55E1A;
+  --color-error:        #EF4444;
+  --color-error-dim:    #EF44441A;
+  --color-primary:      #E8EDF2;
+  --color-secondary:    #8896A7;
+  --color-dim:          #4A5568;
+  --color-muted:        #2D3748;
+}
+
+html,
+body {
+  background-color: var(--color-base);
+  color: var(--color-primary);
+}
+
+/* ─── Stream cursor ──────────────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.stream-cursor::after {
+  content: '▋';
+  color: var(--color-accent);
+  animation: blink 1s step-end infinite;
+  margin-left: 1px;
+}
+
+/* ─── Panel gradient — dark at top, subtly lighter at bottom ────────────── */
+.bg-panel-gradient {
+  background: linear-gradient(to bottom, var(--color-panel) 0%, var(--color-panel-hover) 100%);
+}
+
+/* ─── Custom scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--color-panel-border); }
+::-webkit-scrollbar-thumb { background: var(--color-dim); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
