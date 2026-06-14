@@ -1,91 +1,112 @@
 # PR Review Ops Dashboard
 
-**Live demo of an agentic code review system with real-time tool-call visualization.**
+**Live demo → [pr-review-ops-dashboard.vercel.app](https://pr-review-ops-dashboard.vercel.app)**
 
-A Senior/Staff Frontend Engineer artifact — built to demonstrate streaming LLM UI, agentic workflow visualization, and high-density compliance-grade design at production quality.
+A production-grade AI operations dashboard that visualizes a running code review agent in real time. Streaming LLM analysis on the left, live tool-call audit trail with timing data on the right, operational telemetry across the top.
+
+Built as a senior-level portfolio artifact targeting AI-native fintech and banking engineering roles.
 
 ---
 
-## What this shows
+## What it demonstrates
 
-This is the ops surface you'd build around an AI agent running in production at a fintech or banking platform. It demonstrates:
-
-- **Streaming LLM UI** — token-by-token rendering without re-render thrash, using a ref buffer flushed on requestAnimationFrame
-- **Tool-call audit trail** — each agent step appears in real time with animated timing bars (waterfall profiler aesthetic), status badges, and truncated output summaries
-- **Live ops telemetry** — queue depth, active reviews, avg latency, throughput — ticking with realistic variance
-- **Demo/live mode parity** — demo mode replays a canned session at realistic speed; the UI is identical to the live Anthropic stream path
-
-The agent reviews `acme-bank/ledger-ui` PR #247, running 6 tools: `fetch_pr_diff → analyze_file_structure → check_type_safety → scan_runtime_risks → assess_performance → generate_summary`.
+| Capability | Implementation |
+|---|---|
+| Streaming LLM UI | Token-by-token render via `requestAnimationFrame` batching — 60fps regardless of token rate |
+| Tool-call visualization | Sequential 6-step audit trail with animated timing bars matching actual execution time |
+| Agentic workflow | State machine managing tool start/end correlation across a multi-step agent loop |
+| Real-time telemetry | Live ops metrics strip with session-aware pause/resume |
+| Design token system | 4 themes via CSS custom properties — zero re-renders on switch, FOUC-free on return visits |
+| Streaming architecture | SSE from Next.js API route → `ReadableStreamDefaultReader` → stateful event parser → RAF flush |
 
 ---
 
 ## Stack
 
-- **Next.js 14** (App Router, Server Components, streaming API route)
-- **TypeScript** (strict mode)
-- **Tailwind CSS** (token-driven, no arbitrary values)
-- **Anthropic SDK** (`claude-sonnet-4-6`, tool_use, SSE streaming)
-- **JetBrains Mono** for all data surfaces; **Inter** for UI
-
----
-
-## Setup
-
-```bash
-npm install
-cp .env.example .env.local
-# Add your ANTHROPIC_API_KEY for live mode
-# Leave DEMO_MODE=true to run without API costs
-npm run dev
-```
-
-### VS Code
-Open the project — tasks are pre-configured:
-- `Cmd+Shift+B` → starts dev server in demo mode
-- Task: "Live Mode" → runs with real Anthropic stream
+- **Next.js 14** — App Router, Server Components, `nodejs` runtime API route
+- **TypeScript** — strict mode, zero errors, no `any`, runtime type narrowing
+- **Anthropic SDK** — `messages.stream()` for real SSE streaming in live mode
+- **Tailwind CSS** — design token system via CSS custom properties
+- **Vitest** — 39 unit tests covering stream parser, trace state machine, theme system
 
 ---
 
 ## Architecture
 
 ```
-src/
-  components/
-    TelemetryBar      # Top: ops metrics strip
-    StreamPanel       # Left: token-by-token LLM render
-    TracePanel        # Right: tool-call audit trail
-    TraceStep         # Individual step with timing bar
-    StatusBadge       # running | complete | error
-    StreamCursor      # Blinking cursor during active stream
-  hooks/
-    useStream         # Manages streaming state (demo or live)
-    useTrace          # Accumulates tool-call steps
-    useTelemetry      # Fake ops telemetry ticker
-  lib/
-    tokens            # Design system — all color, type, spacing
-    anthropic         # SDK config + tool definitions
-    streamParser      # Parses SSE chunks into tokens + tool events
-  mocks/
-    reviewSession     # Full canned session for demo mode
-  app/
-    api/review/       # Streaming Next.js API route
-    page.tsx          # Root layout + session orchestration
+useStream          →  SSE/demo replay, RAF token buffering, cancellation
+useTrace           →  tool-call steps, one-to-one start/end pairing
+useTelemetry       →  live ops metrics, session-aware pause/resume
+
+streamParser.ts    →  stateful Anthropic SSE event parser
+                       content_block_start → tool_start
+                       text_delta         → token
+                       content_block_stop → tool_end
+                       message_stop       → done
+
+StreamPanel        →  token-by-token text render, RAF-batched
+TracePanel         →  tool-call audit trail, CSS timing bars
+TelemetryBar       →  ops metrics, theme switcher
+AboutDrawer        →  slide-in reference panel with glossary
 ```
+
+Two operating modes, identical output:
+
+- **Demo mode** (default, live site) — pre-recorded session replay at realistic speed
+- **Live mode** (`DEMO_MODE=false` + API key) — real Anthropic streaming, real tool calls
+
+---
+
+## Run locally
+
+```bash
+git clone https://github.com/worthbeer/pr-review-ops-dashboard.git
+cd pr-review-ops-dashboard
+npm install
+```
+
+**Demo mode** — no API key required:
+```bash
+npm run dev
+```
+
+**Live mode** — real Anthropic streaming:
+```bash
+# Create .env.local with:
+ANTHROPIC_API_KEY=your_key_here
+DEMO_MODE=false
+NEXT_PUBLIC_DEMO_MODE=false
+
+npm run dev
+```
+
+Open [localhost:3000](http://localhost:3000) and click **RUN REVIEW**.
+
+---
+
+## Tests
+
+```bash
+npm test
+```
+
+```
+ Test Files  3 passed (3)
+      Tests  39 passed (39)
+```
+
+- `src/lib/streamParser.test.ts` — all event types, state isolation between concurrent sessions, unknown tool name fallback, full 6-tool sequence
+- `src/hooks/useTrace.test.ts` — step lifecycle, one-to-one start/end pairing, reset, full sequence
+- `src/lib/themes.test.ts` — all four themes, every CSS variable, `applyTheme` DOM application
 
 ---
 
 ## Design
 
-Terminal aesthetic — Bloomberg meets Linear. Near-black base, electric cyan for live state, amber for warnings. JetBrains Mono on all data surfaces. The signature element: tool-call timing bars animate from 0 to full width over the actual step duration — a waterfall profiler rendered in pure CSS transitions.
+Terminal aesthetic — near-black base, electric cyan for live state, amber for warnings. JetBrains Mono on all data surfaces; Inter for UI chrome. The signature element: tool-call timing bars animate from 0 to full width over the actual step duration — a waterfall profiler in pure CSS transitions.
 
-No charting libraries. No component libraries. Raw Tailwind off the token system.
-
----
-
-## Related work
-
-This is the visual layer built on top of the agentic loop from [frontend-code-review](https://github.com/worthbeer/frontend-code-review) — the same PR review agent architecture, now with a production ops surface.
+No charting libraries. No component libraries. Tailwind off the token system.
 
 ---
 
-*Built by [William Bierwerth](https://github.com/worthbeer) — Senior Frontend Engineer*
+William Bierwerth · [wbierwerth@gmail.com](mailto:wbierwerth@gmail.com)
