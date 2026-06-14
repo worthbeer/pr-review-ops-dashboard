@@ -109,6 +109,36 @@ export interface ReplayHandlers {
   onError: (message: string) => void
 }
 
+// ─── Tabs + exec mode ─────────────────────────────────────────────────────────
+
+export type TabId = 'analysis' | 'waterfall' | 'findings' | 'flame' | 'metrics'
+
+// ─── Findings / categories / metrics (new panels) ────────────────────────────
+
+export interface Finding {
+  severity:    'critical' | 'warning' | 'info'
+  title:       string
+  file:        string
+  description: string
+  category:    string
+  techDetail:  string
+  execImpact:  string
+}
+
+export interface Category {
+  label: string
+  hits:  number
+  maxMs: number
+  color: 'error' | 'warning' | 'accent' | 'success'
+}
+
+export interface MetricDay {
+  label:     string
+  prs:       number
+  criticals: number
+  latency:   number
+}
+
 // ─── Stream parser ────────────────────────────────────────────────────────────
 
 export type ParsedEventKind = 'token' | 'tool_start' | 'tool_end' | 'noop' | 'done'

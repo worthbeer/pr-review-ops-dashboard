@@ -23,7 +23,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width:        'device-width',
   initialScale: 1,
-  maximumScale: 1,
 }
 
 // Inline script applied before first paint to eliminate theme flash on return visits.

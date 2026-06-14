@@ -1,16 +1,17 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { TraceStep, ToolName } from '@/types'
 
 export function useTrace() {
   const [steps, setSteps] = useState<TraceStep[]>([])
+  const seqRef = useRef(0)
 
   const handleToolStart = useCallback((tool: ToolName) => {
     setSteps(prev => [
       ...prev,
       {
-        id:        `${tool}-${Date.now()}`,
+        id:        `${tool}-${++seqRef.current}`,
         tool,
         status:    'running',
         startedAt: Date.now(),

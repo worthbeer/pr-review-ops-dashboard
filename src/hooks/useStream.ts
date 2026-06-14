@@ -12,6 +12,8 @@ interface UseStreamOptions {
 
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
+const MAX_STREAM_CHARS = 50_000
+
 export function useStream({ onToolStart, onToolComplete, onComplete }: UseStreamOptions) {
   const [streamState, setStreamState] = useState<StreamState>({ status: 'idle', text: '' })
 
@@ -41,9 +43,12 @@ export function useStream({ onToolStart, onToolComplete, onComplete }: UseStream
   const flushTokens = useCallback(() => {
     if (!mountedRef.current) return
     if (tokenBufferRef.current) {
-      const text = tokenBufferRef.current
+      const chunk = tokenBufferRef.current
       tokenBufferRef.current = ''
-      setStreamState(prev => ({ ...prev, text: prev.text + text }))
+      setStreamState(prev => {
+        const combined = prev.text + chunk
+        return { ...prev, text: combined.length > MAX_STREAM_CHARS ? combined.slice(-MAX_STREAM_CHARS) : combined }
+      })
     }
     rafIdRef.current = null
   }, [])

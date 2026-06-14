@@ -4,6 +4,7 @@ import type { TelemetryState } from '@/types'
 interface Props {
   telemetry: TelemetryState
   isDemo:    boolean
+  execMode:  boolean
 }
 
 function Metric({ label, value, className = '' }: { label: string; value: string; className?: string }) {
@@ -15,18 +16,23 @@ function Metric({ label, value, className = '' }: { label: string; value: string
   )
 }
 
-export function TelemetryBar({ telemetry, isDemo }: Props) {
+export function TelemetryBar({ telemetry, isDemo, execMode }: Props) {
+  const latencyValue = execMode
+    ? `${(telemetry.avgLatencyMs / 1000).toFixed(2)}s`
+    : `${telemetry.avgLatencyMs}ms`
+
   return (
     <header className="shrink-0 border-b border-panel-border bg-panel px-3 sm:px-4 py-2">
       <div className="flex items-center justify-between gap-3 font-mono text-xs">
 
         {/* Left: metrics — core always visible, extended hidden on mobile */}
         <div className="flex items-center gap-3 sm:gap-6 min-w-0">
-          <Metric label="ACTIVE" value={String(telemetry.activeReviews)} />
+          <Metric label={execMode ? 'REVIEWS' : 'ACTIVE'} value={String(telemetry.activeReviews)} />
           <Metric label="QUEUED" value={String(telemetry.queueDepth)} />
-          {/* Hidden below sm (640px) */}
-          <Metric label="LATENCY" value={`${telemetry.avgLatencyMs}ms`} className="hidden sm:flex" />
-          <Metric label="RPM"     value={String(telemetry.throughputRpm)} className="hidden md:flex" />
+          <Metric label={execMode ? 'AVG TIME' : 'LATENCY'} value={latencyValue} className="hidden sm:flex" />
+          {!execMode && (
+            <Metric label="RPM" value={String(telemetry.throughputRpm)} className="hidden md:flex" />
+          )}
         </div>
 
         {/* Right: theme switcher + live indicator + mode badge */}

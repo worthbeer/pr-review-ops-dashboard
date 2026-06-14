@@ -1,18 +1,28 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
-import { TelemetryBar } from '@/components/TelemetryBar'
-import { AboutDrawer }  from '@/components/AboutDrawer'
-import { StreamPanel }  from '@/components/StreamPanel'
-import { TracePanel }   from '@/components/TracePanel'
+import { useCallback, useEffect, useState } from 'react'
+import { TelemetryBar }  from '@/components/TelemetryBar'
+import { AboutDrawer }   from '@/components/AboutDrawer'
+import { TabBar }        from '@/components/TabBar'
+import { StreamPanel }   from '@/components/StreamPanel'
+import { TracePanel }    from '@/components/TracePanel'
+import { WaterfallPanel } from '@/components/WaterfallPanel'
+import { FindingsPanel } from '@/components/FindingsPanel'
+import { FlamePanel }    from '@/components/FlamePanel'
+import { MetricsPanel }  from '@/components/MetricsPanel'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { useTelemetry } from '@/hooks/useTelemetry'
-import { useTrace }     from '@/hooks/useTrace'
-import { useStream }    from '@/hooks/useStream'
+import { useTelemetry }  from '@/hooks/useTelemetry'
+import { useTrace }      from '@/hooks/useTrace'
+import { useStream }     from '@/hooks/useStream'
+import { FINDINGS }      from '@/mocks/findings'
+import type { TabId }    from '@/types'
 
 const IS_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE !== 'false'
 
 export default function Page() {
+  const [activeTab, setActiveTab] = useState<TabId>('analysis')
+  const [execMode,  setExecMode]  = useState(false)
+
   const { telemetry, setSessionActive, setSessionComplete } = useTelemetry()
   const { steps, handleToolStart, handleToolComplete, reset: resetTrace } = useTrace()
 
@@ -26,39 +36,67 @@ export default function Page() {
     onComplete:     handleComplete,
   })
 
-  // Resume telemetry ticking if session ends in an error state
   useEffect(() => {
     if (streamState.status === 'error') {
       setSessionComplete()
     }
   }, [streamState.status, setSessionComplete])
 
-  const isRunning =
-    streamState.status === 'connecting' || streamState.status === 'streaming'
+  const isRunning = streamState.status === 'connecting' || streamState.status === 'streaming'
+  const sessionDone = streamState.status === 'complete'
 
   const handleRunReview = useCallback(async () => {
     resetTrace()
     resetStream()
     setSessionActive()
+    setActiveTab('analysis')
     await startSession()
   }, [resetTrace, resetStream, setSessionActive, startSession])
 
+  const findingCount = sessionDone ? FINDINGS.length : 0
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-base">
-      <TelemetryBar telemetry={telemetry} isDemo={IS_DEMO} />
+      <TelemetryBar telemetry={telemetry} isDemo={IS_DEMO} execMode={execMode} />
       <AboutDrawer />
+      <TabBar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        execMode={execMode}
+        onExecModeChange={setExecMode}
+        findingCount={findingCount}
+      />
 
-      {/* Main panels — side-by-side on md+, stacked on mobile */}
+      {/* Main panels */}
       <main className="flex flex-1 gap-3 p-3 overflow-hidden flex-col md:flex-row">
         <ErrorBoundary>
-          <StreamPanel
-            streamState={streamState}
-            className="flex-1 min-h-[200px] min-w-0"
-          />
+          <div
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+            className="flex-1 min-h-[200px] min-w-0 flex flex-col"
+          >
+            {activeTab === 'analysis' && (
+              <StreamPanel streamState={streamState} className="flex-1" />
+            )}
+            {activeTab === 'waterfall' && (
+              <WaterfallPanel steps={steps} execMode={execMode} className="flex-1" />
+            )}
+            {activeTab === 'findings' && (
+              <FindingsPanel sessionDone={sessionDone} execMode={execMode} className="flex-1" />
+            )}
+            {activeTab === 'flame' && (
+              <FlamePanel sessionDone={sessionDone} execMode={execMode} className="flex-1" />
+            )}
+            {activeTab === 'metrics' && (
+              <MetricsPanel execMode={execMode} className="flex-1" />
+            )}
+          </div>
         </ErrorBoundary>
         <ErrorBoundary>
           <TracePanel
             steps={steps}
+            execMode={execMode}
             className="md:w-[380px] md:shrink-0 w-full min-h-[200px] md:min-h-0"
           />
         </ErrorBoundary>
@@ -85,7 +123,7 @@ export default function Page() {
             {isRunning ? 'REVIEWING...' : 'RUN REVIEW'}
           </button>
 
-          {streamState.status === 'complete' && (
+          {sessionDone && (
             <span className="font-mono text-xs text-success tracking-widest" role="status">
               ✓ Review complete
             </span>

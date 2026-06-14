@@ -18,16 +18,18 @@ Built as a senior-level portfolio artifact targeting AI-native fintech and banki
 | Real-time telemetry | Live ops metrics strip with session-aware pause/resume |
 | Design token system | 4 themes via CSS custom properties — zero re-renders on switch, FOUC-free on return visits |
 | Streaming architecture | SSE from Next.js API route → `ReadableStreamDefaultReader` → stateful event parser → RAF flush |
+| Multi-panel analysis | Waterfall timeline, Findings list, Flame category chart, Metrics history — all derived from one session |
+| Audience switching | TECHNICAL / EXECUTIVE toggle rewrites vocabulary, relabels tools, and adapts metric units across all panels |
 
 ---
 
 ## Stack
 
-- **Next.js 14** — App Router, Server Components, `nodejs` runtime API route
+- **Next.js 15** — App Router, Server Components, `nodejs` runtime API route
 - **TypeScript** — strict mode, zero errors, no `any`, runtime type narrowing
 - **Anthropic SDK** — `messages.stream()` for real SSE streaming in live mode
 - **Tailwind CSS** — design token system via CSS custom properties
-- **Vitest** — 39 unit tests covering stream parser, trace state machine, theme system
+- **Vitest** — 51 unit tests covering stream state machine, trace lifecycle, stream parser, theme system
 
 ---
 
@@ -44,9 +46,14 @@ streamParser.ts    →  stateful Anthropic SSE event parser
                        content_block_stop → tool_end
                        message_stop       → done
 
+TabBar             →  5-tab ARIA tablist + TECHNICAL/EXECUTIVE mode toggle
 StreamPanel        →  token-by-token text render, RAF-batched
+WaterfallPanel     →  horizontal tool-call timeline from real start/end timestamps
+FindingsPanel      →  severity-tagged findings, staggered entry animation
+FlamePanel         →  category hit-rate bars, staggered CSS transitions
+MetricsPanel       →  7-day PR volume, critical rate, latency history
 TracePanel         →  tool-call audit trail, CSS timing bars
-TelemetryBar       →  ops metrics, theme switcher
+TelemetryBar       →  ops metrics, theme switcher, exec-mode label adaptation
 AboutDrawer        →  slide-in reference panel with glossary
 ```
 
@@ -91,10 +98,11 @@ npm test
 ```
 
 ```
- Test Files  3 passed (3)
-      Tests  39 passed (39)
+ Test Files  4 passed (4)
+      Tests  51 passed (51)
 ```
 
+- `src/hooks/useStream.test.ts` — initial state, reset, session completion, token accumulation and ordering, tool callbacks, session isolation, reset-during-session cancellation
 - `src/lib/streamParser.test.ts` — all event types, state isolation between concurrent sessions, unknown tool name fallback, full 6-tool sequence
 - `src/hooks/useTrace.test.ts` — step lifecycle, one-to-one start/end pairing, reset, full sequence
 - `src/lib/themes.test.ts` — all four themes, every CSS variable, `applyTheme` DOM application

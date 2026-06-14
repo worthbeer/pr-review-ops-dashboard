@@ -3,11 +3,21 @@
 import { memo, useEffect, useState } from 'react'
 import { StatusBadge } from './StatusBadge'
 import { tokens } from '@/lib/tokens'
-import type { TraceStep as TraceStepType } from '@/types'
+import type { TraceStep as TraceStepType, ToolName } from '@/types'
+
+const TOOL_LABELS: Record<ToolName, string> = {
+  fetch_pr_diff:          'Fetch PR Diff',
+  analyze_file_structure: 'Analyze File Structure',
+  check_type_safety:      'Check Type Safety',
+  scan_runtime_risks:     'Scan Runtime Risks',
+  assess_performance:     'Assess Performance',
+  generate_summary:       'Generate Summary',
+}
 
 interface Props {
-  step:  TraceStepType
-  index: number
+  step:     TraceStepType
+  index:    number
+  execMode: boolean
 }
 
 const barColorClass: Record<string, string> = {
@@ -17,7 +27,7 @@ const barColorClass: Record<string, string> = {
   pending:  'bg-dim',
 }
 
-export const TraceStep = memo(function TraceStep({ step, index }: Props) {
+export const TraceStep = memo(function TraceStep({ step, index, execMode }: Props) {
   const [barWidth, setBarWidth] = useState('0%')
 
   useEffect(() => {
@@ -55,7 +65,7 @@ export const TraceStep = memo(function TraceStep({ step, index }: Props) {
               {String(index + 1).padStart(2, '0')}
             </span>
             <span className="font-mono text-xs text-primary truncate">
-              {step.tool}
+              {execMode ? TOOL_LABELS[step.tool] : step.tool}
             </span>
           </div>
           <div className="flex items-center gap-3 shrink-0">

@@ -3,10 +3,11 @@ import type { TraceStep as TraceStepType } from '@/types'
 
 interface Props {
   steps:      TraceStepType[]
+  execMode:   boolean
   className?: string
 }
 
-export function TracePanel({ steps, className = '' }: Props) {
+export function TracePanel({ steps, execMode, className = '' }: Props) {
   return (
     <section
       className={`flex flex-col bg-panel-gradient border border-panel-border rounded-panel overflow-hidden ${className}`}
@@ -14,7 +15,7 @@ export function TracePanel({ steps, className = '' }: Props) {
       {/* Panel header */}
       <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-panel-border">
         <span className="font-sans text-xs font-medium text-dim tracking-widest uppercase">
-          Tool Trace
+          {execMode ? 'Analysis Pipeline' : 'Tool Trace'}
         </span>
         <span className="font-mono text-xs text-dim tabular-nums">
           {steps.length}/6
@@ -29,7 +30,7 @@ export function TracePanel({ steps, className = '' }: Props) {
           </p>
         ) : (
           steps.map((step, i) => (
-            <TraceStep key={step.id} step={step} index={i} />
+            <TraceStep key={step.id} step={step} index={i} execMode={execMode} />
           ))
         )}
       </div>

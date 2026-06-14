@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 const SYNOPSIS: string[] = [
   `This is what it looks like to build the operational layer of an AI-native banking platform. The audit trail on the right — sequential tool calls, timing data, and status states across six discrete checks — is the compliance-facing observability surface that Tier-1 operations teams depend on. The streaming panel on the left is the interaction pattern defining the next generation of financial AI products.`,
   `The PR under review is a fictional banking compliance dashboard: acme-bank/ledger-ui, PR #247, four changed files including a real-time WebSocket stream and its type definitions. The agent's analysis surfaces concrete engineering concerns — missing error boundaries, untyped WebSocket messages, memory leaks in useEffect cleanup — because the problems that appear in banking frontend code are precisely the problems this kind of tooling is built to catch before they reach production.`,
-  `Stack: Next.js 14 App Router, TypeScript strict mode with zero errors and no type assertions, Anthropic SDK for real streaming, Tailwind CSS over a design token system. The architecture — streaming state machine, live tool-call trace, operational telemetry — reflects the patterns required to build frontend infrastructure at enterprise scale.`,
+  `Stack: Next.js 15 App Router, TypeScript strict mode with zero errors and no type assertions, Anthropic SDK for real streaming, Tailwind CSS over a design token system. The architecture — streaming state machine, multi-panel analysis views with exec/technical mode switching, live tool-call trace, and operational telemetry — reflects the patterns required to build frontend infrastructure at enterprise scale.`,
 ]
 
 interface GlossaryEntry {
@@ -62,8 +62,30 @@ const GLOSSARY: GlossaryEntry[] = [
     ],
   },
   {
-    id:    'demo-live',
+    id:    'analysis-views',
     num:   '05',
+    title: 'Analysis Views',
+    tag:   'navigation · multi-panel',
+    paragraphs: [
+      `A session produces more than one type of output, and different people need to see different things. The tab bar across the top of the dashboard exposes five views into the same session data.`,
+      `ANALYSIS is the main streaming panel — the AI's written assessment forming word by word in real time. WATERFALL reframes the tool-call trace as a horizontal timeline: each of the six checks appears as a bar positioned and sized to reflect when it started and how long it ran relative to the full session. You can see at a glance whether checks ran sequentially or overlapped, and which ones dominated the total runtime.`,
+      `FINDINGS presents the discrete engineering concerns the AI surfaced, each tagged with a severity level (critical, warning, informational) and a category. They animate in sequentially when the session completes — a deliberate choice to give each finding a moment of visual weight rather than dumping a list. FLAME shows the same findings aggregated by category as a hit-rate bar chart, useful for spotting which class of problem dominates this codebase. METRICS shows a 7-day historical view: PR volume, critical finding rate, and average latency over time.`,
+    ],
+  },
+  {
+    id:    'exec-toggle',
+    num:   '06',
+    title: 'Executive / Technical Mode',
+    tag:   'audience switching · information design',
+    paragraphs: [
+      `The same data carries different weight depending on who is reading it. A principal engineer wants to see the specific TypeScript violation and which file it's in. An engineering director or a compliance officer wants to know what the business consequence is if it ships.`,
+      `The TECHNICAL / EXECUTIVE toggle in the top-right of the tab bar switches the entire dashboard's vocabulary. In technical mode, findings show their category tag and implementation detail. In executive mode, those are replaced with plain-language business impact statements — "memory leak under sustained load" becomes "could degrade service reliability for end users during peak hours." The tool trace relabels its six steps from internal function names to operational descriptions like "Code Retrieval" instead of "fetch_pr_diff." The telemetry strip relabels ACTIVE to REVIEWS and converts LATENCY from milliseconds to seconds with a human-readable suffix.`,
+      `The intent is a dashboard that doesn't require translation. A non-technical stakeholder observing a live review session should be able to read what's on screen without asking someone to interpret it.`,
+    ],
+  },
+  {
+    id:    'demo-live',
+    num:   '07',
     title: 'Demo vs. Live Mode',
     tag:   'deployment · architecture',
     paragraphs: [
@@ -74,7 +96,7 @@ const GLOSSARY: GlossaryEntry[] = [
   },
   {
     id:    'batching',
-    num:   '06',
+    num:   '08',
     title: 'Token Batching',
     tag:   'performance · architecture',
     paragraphs: [
@@ -84,7 +106,7 @@ const GLOSSARY: GlossaryEntry[] = [
   },
   {
     id:    'telemetry',
-    num:   '07',
+    num:   '09',
     title: 'Ops Telemetry',
     tag:   'monitoring · observability',
     paragraphs: [
@@ -94,7 +116,7 @@ const GLOSSARY: GlossaryEntry[] = [
   },
   {
     id:    'architecture',
-    num:   '08',
+    num:   '10',
     title: 'System Architecture',
     tag:   'engineering · error isolation',
     paragraphs: [
@@ -300,7 +322,7 @@ export function AboutDrawer() {
           {/* Drawer footer */}
           <div className="px-6 py-5 border-t border-panel-border space-y-2">
             <p className="font-mono text-xs text-dim leading-relaxed">
-              Next.js 14 App Router · TypeScript strict · Anthropic SDK · Tailwind CSS · Vercel
+              Next.js 15 App Router · TypeScript strict · Anthropic SDK · Tailwind CSS · Vercel
             </p>
             <a
               href="https://github.com/worthbeer/pr-review-ops-dashboard"
